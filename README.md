@@ -1,6 +1,6 @@
 # AI Service
 
-REST API phân tích cảm xúc văn bản (sentiment analysis) xây dựng bằng **FastAPI**, model **DistilBERT**, database **PostgreSQL**, triển khai bằng **Docker Compose**.
+REST API phân tích cảm xúc văn bản xây dựng bằng **FastAPI**, model **TextBlob**, database **PostgreSQL**, triển khai bằng **Docker Compose**.
 
 ---
 
@@ -19,7 +19,7 @@ REST API phân tích cảm xúc văn bản (sentiment analysis) xây dựng bằ
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (bao gồm Docker Compose v2)
 
-Không cần cài Python, PostgreSQL hay bất cứ thứ gì khác trên máy host.
+Không cần cài Python, PostgreSQL, hay bất cứ thứ gì khác trên máy host.
 
 ---
 
@@ -35,7 +35,7 @@ ai-service/
 │   │   ├── db.py            # ORM model (bảng predictions)
 │   │   └── schemas.py       # Pydantic schemas cho request / response
 │   └── services/
-│       ├── core.py          # Load model DistilBERT, hàm predict
+│       ├── core.py          # TextBlob sentiment analysis
 │       └── database.py      # SQLAlchemy engine và session
 ├── .env                     # Biến môi trường (không commit lên git)
 ├── .dockerignore
@@ -76,8 +76,6 @@ docker compose up
 
 Không cần chạy `docker compose build` riêng — Compose tự build image `api` từ `Dockerfile` nếu chưa có.
 
-> **Lưu ý:** Lần đầu chạy sẽ mất vài phút vì Docker cần tải model DistilBERT (~250 MB) từ Hugging Face. Các lần sau nhanh hơn nhờ layer cache.
-
 ### 3. Dừng service
 
 ```bash
@@ -106,7 +104,7 @@ Kiểm tra trạng thái service và kết nối database.
 
 ### `POST /predict`
 
-Phân tích cảm xúc một đoạn văn bản.
+Phân tích cảm xúc một đoạn văn bản bằng TextBlob. Score là giá trị tuyệt đối của polarity (0.0 – 1.0).
 
 **Request body**
 ```json
@@ -162,22 +160,22 @@ Trả về `404` nếu không tìm thấy ID.
 
 ## Model AI
 
-- **Model:** [`distilbert-base-uncased-finetuned-sst-2-english`](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english)
+- **Library:** [TextBlob](https://textblob.readthedocs.io/)
 - **Task:** Sentiment Analysis (POSITIVE / NEGATIVE)
-- **Framework:** Hugging Face Transformers + PyTorch
+- **Phương pháp:** Tính `polarity` từ `TextBlob.sentiment`; dương → `POSITIVE`, không dương → `NEGATIVE`; score = `abs(polarity)` ∈ [0, 1]
 
-Model được load vào memory khi container khởi động (startup event). Mọi request `/predict` sau đó đều dùng lại instance đã load, không load lại mỗi lần gọi.
+Model không cần load từ file hay tải về từ internet — TextBlob được cài trực tiếp qua pip và hoạt động offline.
 
 ---
 
 ## Stack công nghệ
 
-| Thành phần   | Công nghệ                              |
-|--------------|----------------------------------------|
-| API framework | FastAPI 0.135                         |
-| ASGI server  | Uvicorn 0.41                           |
-| AI model     | DistilBERT via Hugging Face Transformers 5.2 |
-| ORM          | SQLAlchemy 2.0                         |
-| Database     | PostgreSQL 16                          |
-| Container    | Docker (python:3.11-slim, multi-stage) |
-| Orchestration | Docker Compose v2                     |
+| Thành phần    | Công nghệ                              |
+|---------------|----------------------------------------|
+| API framework | FastAPI 0.135                          |
+| ASGI server   | Uvicorn 0.41                           |
+| AI model      | TextBlob 0.18                          |
+| ORM           | SQLAlchemy 2.0                         |
+| Database      | PostgreSQL 16                          |
+| Container     | Docker (python:3.11-slim, multi-stage) |
+| Orchestration | Docker Compose v2                      |
