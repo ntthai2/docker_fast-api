@@ -19,8 +19,6 @@ REST API phân tích cảm xúc văn bản xây dựng bằng **FastAPI**, model
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (bao gồm Docker Compose v2)
 
-Không cần cài Python, PostgreSQL, hay bất cứ thứ gì khác trên máy host.
-
 ---
 
 ## Cấu trúc project
@@ -50,31 +48,15 @@ ai-service/
 
 ### 1. Tạo file `.env`
 
-File `.env` không được commit lên git — sau khi clone về bạn phải tự tạo tay ở thư mục gốc:
-
 ```bash
-cp .env.example .env   # hoặc tạo thủ công
+cp .env.example .env
 ```
-
-Nội dung mặc định:
-
-```env
-POSTGRES_USER=aiuser
-POSTGRES_PASSWORD=aipassword
-POSTGRES_DB=aidb
-DATABASE_URL=postgresql://aiuser:aipassword@db:5432/aidb
-ALLOWED_ORIGINS=http://localhost:3000
-```
-
-> Đổi `POSTGRES_PASSWORD` và `ALLOWED_ORIGINS` phù hợp với môi trường của bạn trước khi chạy production.
 
 ### 2. Khởi động
 
 ```bash
 docker compose up
 ```
-
-Không cần chạy `docker compose build` riêng — Compose tự build image `api` từ `Dockerfile` nếu chưa có.
 
 ### 3. Dừng service
 
@@ -163,8 +145,6 @@ Trả về `404` nếu không tìm thấy ID.
 - **Library:** [TextBlob](https://textblob.readthedocs.io/)
 - **Task:** Sentiment Analysis (POSITIVE / NEGATIVE)
 - **Phương pháp:** Tính `polarity` từ `TextBlob.sentiment`; dương → `POSITIVE`, không dương → `NEGATIVE`; score = `abs(polarity)` ∈ [0, 1]
-
-Model không cần load từ file hay tải về từ internet — TextBlob được cài trực tiếp qua pip và hoạt động offline.
 
 ---
 
